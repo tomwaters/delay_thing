@@ -1,0 +1,21 @@
+-- PONG FAST
+"cut_input_adc": 1.0
+"cut_input_eng": 1.0
+"cut_input_tape": -inf
+"drywet": 0.5
+"num_taps": 2
+"1type": 1
+"1beats": 3
+"1length": 0.5
+"1feedback": 0.7
+"1pan": -1
+"2type": 1
+"2beats": 2
+"2length": 0.25
+"2feedback": 0.7
+"2pan": 1
+"3type": 1
+"3beats": 1
+"3length": 0.5
+"3feedback": 0.55
+"3pan": 0.0
