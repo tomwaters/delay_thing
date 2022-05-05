@@ -12,7 +12,6 @@ ddd = include('lib/dddelay')
 -- presets after saving/deleting
 -- move preset stuff to lib
 -- better dry/wet curves
--- clocked length when tempo changes
 
 local psets = {}
 local pset_display = 1
@@ -40,7 +39,7 @@ end
 function enc(n, delta)
   if n == 2 then
     pset_display = util.clamp(pset_display + delta, 1, #psets)
-    pset_preview_metro:start(3, 1)
+    pset_preview_metro:start(5, 1)
   elseif n == 3 then
     params:set("drywet", util.clamp(params:get("drywet") + (delta/20), 0, 1))
   end
@@ -48,10 +47,12 @@ function enc(n, delta)
 end
 
 function key(n, z)
-  if n == 2 and z == 0 then
-    pset_current = pset_display
-    print(psets[pset_current].path)
-    params:read(psets[pset_current].path)
+  if z == 0 then
+    if n == 2 then
+      pset_load()
+    elseif n == 3 then
+      ddd.toggle_hold()
+    end
   end
 end
 
@@ -69,6 +70,11 @@ function redraw()
   dial_drywet:redraw()
 
   screen.update()
+end
+
+function pset_load()
+  pset_current = pset_display
+  params:read(psets[pset_current].path)
 end
 
 function pset_preview_cancel()
@@ -114,8 +120,3 @@ function pset_get_all()
   local user_path = _path.data..norns.state.name
   pset_get_in_folder(user_path)
 end
-
-
-
-
-  

@@ -1,13 +1,17 @@
 local dddelay = {
   max_taps = 3,
   num_taps = 1,
-  beat_lengths = {0.1, 0.25, 0.5, 1, 1.5, 2, 4}
+  held = false,
+  tempo = params:get("clock_tempo"),
+  beat_lengths = {0.1, 0.25, 0.5, 1, 1.5, 2, 4},
 }
 
 function dddelay.init()
   audio.level_cut(1.0)
   audio.level_adc_cut(0)
   
+  clock.run(dddelay.tempo_watch)
+
   for i=1, dddelay.max_taps do
   	softcut.loop_start(i, 1)
   	softcut.rec_level(i, 1)
@@ -63,25 +67,27 @@ function dddelay.init_params()
   for i=1, dddelay.max_taps do
     params:add_option(i.."type", i.." type", {'clocked', 'free'})
     params:set_action(i.."type", function(val) 
-      if val == 1 then
-        params:show(i.."beats")
-        params:hide(i.."length")
-      else
-        params:show(i.."length")
-        params:hide(i.."beats")
+      if i <= dddelay.num_taps then
+        if val == 1 then
+          params:show(i.."beats")
+          params:hide(i.."length")
+        else
+          params:show(i.."length")
+          params:hide(i.."beats")
+        end
+
+        dddelay.delay_param_change()
       end
       _menu.rebuild_params()
-
-      dddelay.delay_param_change()
     end)
     
     params:add_option(i.."beats", i.." length", dddelay.beat_lengths)
     params:set_action(i.."beats", dddelay.delay_param_change)
-    
+
     cs_LEN = controlspec.new(0, 5, 'lin', 0, 0.5, 'secs')
     params:add_control(i.."length", i.." length", cs_LEN)
     params:set_action(i.."length", dddelay.delay_param_change)
-    
+
     cs_FEEDBACK = controlspec.new(0, 1, 'lin', 0, 0.55, '')
     params:add_control(i.."feedback", i.." feedback", cs_FEEDBACK)
     params:set_action(i.."feedback", dddelay.delay_param_change)
@@ -91,6 +97,16 @@ function dddelay.init_params()
   end
   
   params:default()
+end
+
+function dddelay.tempo_watch()
+  while true do
+    clock.sync(1)
+    if dddelay.tempo ~= params:get("clock_tempo") then
+      dddelay.tempo = params:get("clock_tempo")
+      dddelay.delay_param_change()
+    end
+  end
 end
 
 function dddelay.delay_param_change()
@@ -111,7 +127,7 @@ function dddelay.delay_update(taps)
       softcut.voice_sync(1, i, 0)
       
       if params:get(i.."type") == 1 then
-        softcut.loop_end(i, 1 + (60 / params:get("clock_tempo")) * dddelay.beat_lengths[params:get(i.."beats")])
+        softcut.loop_end(i, 1 + (60 / dddelay.tempo) * dddelay.beat_lengths[params:get(i.."beats")])
       else
         softcut.loop_end(i, 1 + params:get(i.."length"))
       end
@@ -123,5 +139,11 @@ function dddelay.delay_update(taps)
   dddelay.num_taps = taps
 end
 
+function dddelay.toggle_hold()
+  held = not held
+  for i=1, dddelay.max_taps do
+    softcut.rec(i, held and 1 or 0)
+  end
+end
 
 return dddelay

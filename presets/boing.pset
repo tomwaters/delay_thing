@@ -4,10 +4,10 @@
 "cut_input_tape": -inf
 "drywet": 0.5
 "num_taps": 1
-"1type": 1
+"1type": 2
 "1beats": 1
-"1length": 0.1
-"1feedback": 0.9
+"1length": 0.25
+"1feedback": 0.55
 "1pan": 0.0
 "2type": 1
 "2beats": 1
